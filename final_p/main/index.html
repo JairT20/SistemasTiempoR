@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel ESP32</title>
+
+    <!-- Tu CSS (misma carpeta que index.html) -->
+    <link rel="stylesheet" href="app.css">
+</head>
+<body>
+    <h1>Panel ESP32</h1>
+
+    <!-- =========================
+         SECCIÓN HORA ESP32
+    ========================== -->
+    <h2>Hora desde el ESP32</h2>
+    <p>Hora actual: <span id="esp32_time">--:--:--</span></p>
+
+    <hr>
+
+    <!-- =========================
+         SECCIÓN OTA FIRMWARE
+    ========================== -->
+    <h2>Actualización de Firmware (OTA)</h2>
+
+    <input type="file" id="selected_file" onchange="getFileInfo()">
+    <div id="file_info"></div>
+
+    <div>
+        <span id="latest_firmware_label">Último firmware:</span>
+        <span id="latest_firmware"></span>
+    </div>
+
+    <div id="ota_update_status"></div>
+
+    <div class="buttons">
+        <input type="button" value="Subir firmware" onclick="updateFirmware()">
+    </div>
+
+    <hr>
+
+    <!-- =========================
+         SECCIÓN DHT22
+    ========================== -->
+    <h2>Lecturas DHT22</h2>
+    <p>Temperatura: <span id="temperature_reading">--</span> °C</p>
+    <p>Humedad: <span id="humidity_reading">--</span> %</p>
+
+    <hr>
+
+    <!-- =========================
+         ESTADO WIFI
+    ========================== -->
+    <h2>Estado WiFi</h2>
+    <div id="wifi_connect_status"></div>
+
+    <hr>
+
+    <!-- =========================
+         CONTROL LED / UART
+    ========================== -->
+    <h2>Control</h2>
+    <div class="buttons">
+        <input type="button" id="toogle_led"  value="Toggle LED">
+        <input type="button" id="apagar_uart" value="Apagar UART">
+    </div>
+
+    <!-- Tu lógica de la página, SIN jQuery externo -->
+    <script src="app.js"></script>
+</body>
+</html>

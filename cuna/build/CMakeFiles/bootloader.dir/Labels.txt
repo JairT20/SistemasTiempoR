@@ -1,0 +1,13 @@
+# Target labels
+ bootloader
+# Source files and their labels
+/home/jair/Documents/sistemastiemporeal/cuna/build/CMakeFiles/bootloader
+/home/jair/Documents/sistemastiemporeal/cuna/build/CMakeFiles/bootloader.rule
+/home/jair/Documents/sistemastiemporeal/cuna/build/CMakeFiles/bootloader-complete.rule
+/home/jair/Documents/sistemastiemporeal/cuna/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule
+/home/jair/Documents/sistemastiemporeal/cuna/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
+/home/jair/Documents/sistemastiemporeal/cuna/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
+/home/jair/Documents/sistemastiemporeal/cuna/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
+/home/jair/Documents/sistemastiemporeal/cuna/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
+/home/jair/Documents/sistemastiemporeal/cuna/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
+/home/jair/Documents/sistemastiemporeal/cuna/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule
