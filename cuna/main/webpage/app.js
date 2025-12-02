@@ -165,10 +165,33 @@ function getregValues()
 
 function getDHTSensorValues()
 {
-	$.getJSON('/dhtSensor.json', function(data) {
-		$("#temperature_reading").text(data["temp"]);
-	});
+    $.getJSON('/dhtSensor.json', function(data) {
+
+        // ----- Temperatura NTC -----
+        if (data["temp"] === null || data["temp"] === undefined) {
+            $("#temperature_reading").text("--");
+        } else {
+            // Si viene como número, mostramos con 1 decimal
+            var tempVal = data["temp"];
+            if (typeof tempVal === "number") {
+                $("#temperature_reading").text(tempVal.toFixed(1) + " °C");
+            } else {
+                $("#temperature_reading").text(tempVal + " °C");
+            }
+        }
+
+        // ----- Estado PIR -----
+        if (data["pir"] === 1) {
+            $("#pir_status").text("Movimiento detectado");
+        } else {
+            $("#pir_status").text("Sin movimiento");
+        }
+    }).fail(function() {
+        $("#temperature_reading").text("--");
+        $("#pir_status").text("Sin datos");
+    });
 }
+
 
 /**
  * Sets the interval for getting the updated DHT22 sensor values.

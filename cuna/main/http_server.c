@@ -47,9 +47,14 @@
 #include "mqtt_client.h"
 #include "esp_sntp.h"
 
+#include "ntc_driver.h"
+#include "pir_driver.h"
+#include "esp_adc/adc_oneshot.h"
+
 
 // Tag used for ESP serial console messages
 static const char TAG[] = "http_server";
+static adc_oneshot_unit_handle_t s_ntc_adc_handle = NULL;
 
 
 // Wifi connect status
@@ -328,6 +333,8 @@ static void mqtt_app_start(void)
 	};
 
 
+	
+
  
 #if CONFIG_BROKER_URL_FROM_STDIN
     char line[128];
@@ -359,6 +366,23 @@ static void mqtt_app_start(void)
     esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqtt_event_handler, NULL);
     esp_mqtt_client_start(client);
 }
+
+static void sensors_init(void)
+{
+    // ---------- ADC para NTC ----------
+    adc_oneshot_unit_init_cfg_t init_cfg = {
+        .unit_id = ADC_UNIT_1,
+        .ulp_mode = ADC_ULP_MODE_DISABLE,
+    };
+
+    ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_cfg, &s_ntc_adc_handle));
+    inicializar_ntc(s_ntc_adc_handle);   // tu función del ntc_driver.c
+
+    // ---------- PIR ----------
+    // CAMBIA este GPIO por el que realmente tengas conectado el PIR
+    pir_init(GPIO_NUM_4, NULL);   // Si no quieres usar cola, NULL está bien
+}
+
 
 /**
  * Checks the g_fw_update_status and creates the fw_update_reset timer if g_fw_update_status is true.
@@ -1070,15 +1094,31 @@ static esp_err_t http_server_wifi_connect_status_json_handler(httpd_req_t *req)
 
 static esp_err_t http_server_get_dht_sensor_readings_json_handler(httpd_req_t *req)
 {
-    ESP_LOGI(TAG, "/dhtSensor.json requested (dummy handler)");
+    ESP_LOGI(TAG, "/dhtSensor.json requested (NTC + PIR)");
 
-    const char *dhtJSON = "{\"temp\":0.0,\"humidity\":0.0}";
+    float temp_c = leer_temperatura_celsius(s_ntc_adc_handle);
+    bool motion = pir_is_motion_active();
+
+    char json[128];
+
+    // Si la NTC devuelve error (-999), mandamos null
+    if (temp_c < -100.0f) {
+        snprintf(json, sizeof(json),
+                 "{\"temp\":null,\"pir\":%d}",
+                 motion ? 1 : 0);
+    } else {
+        snprintf(json, sizeof(json),
+                 "{\"temp\":%.2f,\"pir\":%d}",
+                 temp_c,
+                 motion ? 1 : 0);
+    }
 
     httpd_resp_set_type(req, "application/json");
-    httpd_resp_send(req, dhtJSON, strlen(dhtJSON));
+    httpd_resp_send(req, json, strlen(json));
 
     return ESP_OK;
 }
+
 
 
 
@@ -1226,8 +1266,8 @@ static httpd_handle_t http_server_configure(void)
 		httpd_register_uri_handler(http_server_handle, &register_erase);
 		
 
-		// register dhtSensor.json handler
-		/*
+		//register dhtSensor.json handler
+		
 		httpd_uri_t dht_sensor_json = {
 				.uri = "/dhtSensor.json",
 				.method = HTTP_GET,
@@ -1235,7 +1275,7 @@ static httpd_handle_t http_server_configure(void)
 				.user_ctx = NULL
 		};
 		httpd_register_uri_handler(http_server_handle, &dht_sensor_json);
-		*/
+		
 
 
 
@@ -1284,6 +1324,7 @@ void http_server_start(void)
 {
 	if (http_server_handle == NULL)
 	{
+		sensors_init();
 		http_server_handle = http_server_configure();
 	}
 }

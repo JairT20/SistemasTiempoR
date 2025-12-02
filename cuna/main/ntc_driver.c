@@ -1,4 +1,6 @@
 #include "ntc_driver.h"
+
+
 #include <math.h> // Librería matemática para cálculos como el logaritmo.
 
 // --- CONFIGURACIÓN DEL SENSOR NTC ---
