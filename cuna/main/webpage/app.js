@@ -516,6 +516,46 @@ function brigthness_up()
 }
 
 
+// Actualizar el valor del slider en texto
+$(document).ready(function() {
+    const $range = $("#fan_speed");
+    const $label = $("#fan_speed_value");
+
+    $label.text($range.val() + "%");
+
+    $range.on("input change", function() {
+        $label.text($(this).val() + "%");
+    });
+});
+
+// Enviar modo + velocidad al ESP32
+function apply_fan_control() {
+    const mode  = $("#fan_mode").val();   // "manual", "auto", "registros"
+    const speed = parseInt($("#fan_speed").val(), 10);
+
+    const payload = JSON.stringify({
+        mode: mode,
+        speed: speed
+    });
+
+    $.ajax({
+        url: "/fanControl.json",
+        dataType: "json",
+        method: "POST",
+        cache: false,
+        data: payload,
+        contentType: "application/json",
+        success: function(resp) {
+            $("#fan_status").text(resp.status || "Configuración aplicada");
+        },
+        error: function(xhr, status, error) {
+            console.error(xhr.responseText);
+            $("#fan_status").text("Error al aplicar configuración");
+        }
+    });
+}
+
+
 
 
 

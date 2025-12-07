@@ -51,6 +51,8 @@
 #include "pir_driver.h"
 #include "esp_adc/adc_oneshot.h"
 
+#include "fan_control.h"
+
 
 // Tag used for ESP serial console messages
 static const char TAG[] = "http_server";
@@ -99,10 +101,6 @@ uint8_t s_led_state = 0;
 
 
 
-
-
-
-
 void toogle_led( void )
 {
 	
@@ -111,6 +109,76 @@ void toogle_led( void )
 	gpio_set_level(BLINK_GPIO, s_led_state);
 
 }
+
+static esp_err_t http_server_fan_control_handler(httpd_req_t *req)
+{
+    ESP_LOGI(TAG, "/fanControl.json requested");
+
+    int len = req->content_len;
+    if (len <= 0) {
+        ESP_LOGI(TAG, "fanControl: content_len <= 0");
+        return ESP_FAIL;
+    }
+
+    char *buf = malloc(len + 1);
+    if (!buf) {
+        ESP_LOGI(TAG, "fanControl: malloc failed");
+        return ESP_FAIL;
+    }
+
+    int ret = httpd_req_recv(req, buf, len);
+    if (ret <= 0) {
+        free(buf);
+        ESP_LOGI(TAG, "fanControl: recv failed");
+        return ESP_FAIL;
+    }
+    buf[len] = '\0';
+
+    cJSON *root = cJSON_Parse(buf);
+    free(buf);
+
+    if (!root) {
+        ESP_LOGI(TAG, "fanControl: invalid JSON");
+        return ESP_FAIL;
+    }
+
+    cJSON *mode_json  = cJSON_GetObjectItem(root, "mode");
+    cJSON *speed_json = cJSON_GetObjectItem(root, "speed");
+
+    if (!cJSON_IsString(mode_json) || !cJSON_IsNumber(speed_json)) {
+        cJSON_Delete(root);
+        ESP_LOGI(TAG, "fanControl: missing fields");
+        return ESP_FAIL;
+    }
+
+    const char *mode_str = mode_json->valuestring;
+    int speed            = speed_json->valueint;
+
+    fan_mode_t mode = FAN_MODE_MANUAL;
+    if (strcmp(mode_str, "auto") == 0) {
+        mode = FAN_MODE_AUTO;
+    } else if (strcmp(mode_str, "registros") == 0) {
+        mode = FAN_MODE_REGISTERS;
+    }
+
+    // Aplica configuración
+    fan_control_set_mode(mode);
+    fan_control_set_manual_speed((uint8_t)speed);
+
+    cJSON_Delete(root);
+
+    // Respuesta JSON
+    char resp[128];
+    snprintf(resp, sizeof(resp),
+             "{\"status\":\"ok\",\"mode\":\"%s\",\"speed\":%d}",
+             mode_str, speed);
+
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_send(req, resp, strlen(resp));
+
+    return ESP_OK;
+}
+
 
 static esp_err_t http_server_time_json_handler(httpd_req_t *req)
 {
@@ -1164,6 +1232,16 @@ static httpd_handle_t http_server_configure(void)
 	{
 		ESP_LOGI(TAG, "http_server_configure: Registering URI handlers");
 
+		//
+		httpd_uri_t fan_control_uri = {
+			.uri     = "/fanControl.json",
+			.method  = HTTP_POST,
+			.handler = http_server_fan_control_handler,
+			.user_ctx = NULL
+		};
+		httpd_register_uri_handler(http_server_handle, &fan_control_uri);
+
+
 		// register query handler
 		httpd_uri_t jquery_js = {
 				.uri = "/jquery-3.3.1.min.js",
@@ -1325,6 +1403,7 @@ void http_server_start(void)
 	if (http_server_handle == NULL)
 	{
 		sensors_init();
+		//fan_control_init();
 		http_server_handle = http_server_configure();
 	}
 }
