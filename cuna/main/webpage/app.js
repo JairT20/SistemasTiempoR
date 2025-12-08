@@ -149,19 +149,22 @@ function otaRebootTimer()
 
 function getregValues()
 {
-	$.getJSON('/read_regs.json', function(data) {
-		$("#reg_1").text(data["reg1"]);
-		$("#reg_2").text(data["reg2"]);
-		$("#reg_3").text(data["reg3"]);
-		$("#reg_4").text(data["reg4"]);
-		$("#reg_5").text(data["reg5"]);
-		$("#reg_6").text(data["reg6"]);
-		$("#reg_7").text(data["reg7"]);
-		$("#reg_8").text(data["reg8"]);
-		$("#reg_9").text(data["reg9"]);
-		$("#reg_10").text(data["reg10"]);
-	});
+    $.getJSON('/readreg.json', function(data) {
+        $("#reg_1").text(data["reg1"] || "--");
+        $("#reg_2").text(data["reg2"] || "--");
+        $("#reg_3").text(data["reg3"] || "--");
+        $("#reg_4").text(data["reg4"] || "--");
+        $("#reg_5").text(data["reg5"] || "--");
+        $("#reg_6").text(data["reg6"] || "--");
+        $("#reg_7").text(data["reg7"] || "--");
+        $("#reg_8").text(data["reg8"] || "--");
+        $("#reg_9").text(data["reg9"] || "--");
+        $("#reg_10").text(data["reg10"] || "--");
+    }).fail(function(jq, status, err) {
+        console.error("Error leyendo registros:", status, err);
+    });
 }
+
 
 function getDHTSensorValues()
 {
@@ -473,7 +476,7 @@ function erase_register()
     var requestDataJSON = JSON.stringify(requestData);
 
 	$.ajax({
-		url: '/regchange.json',
+		url: '/regerase.json',
 		dataType: 'json',
 		method: 'POST',
 		cache: false,
