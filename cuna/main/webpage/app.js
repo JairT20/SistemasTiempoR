@@ -378,64 +378,106 @@ function showPassword()
 		x.type = "password";
 	}
 }
-
-
 function send_register()
 {
-    // Assuming you have selectedNumber, hours, minutes variables populated from your form
-    selectedNumber = $("#selectNumber").val();
-    hours = $("#hours").val();
-    minutes = $("#minutes").val();
-    
-    // Create an array for selected days
-    var selectedDays = [];
-    if ($("#day_mon").prop("checked")) selectedDays.push("1");
-	else selectedDays.push("0");
-    if ($("#day_tue").prop("checked")) selectedDays.push("1");
-	else selectedDays.push("0");
-    if ($("#day_wed").prop("checked")) selectedDays.push("1");
-	else selectedDays.push("0");
-    if ($("#day_thu").prop("checked")) selectedDays.push("1");
-	else selectedDays.push("0");
-    if ($("#day_fri").prop("checked")) selectedDays.push("1");
-	else selectedDays.push("0");
-    if ($("#day_sat").prop("checked")) selectedDays.push("1");
-	else selectedDays.push("0");
-    if ($("#day_sun").prop("checked")) selectedDays.push("1");
-	else selectedDays.push("0");
+    const selectedNumber = parseInt($("#selectNumber").val(), 10);
+    const hours   = parseInt($("#hours").val(), 10);
+    const minutes = parseInt($("#minutes").val(), 10);
 
-    // Create an object to hold the data to be sent in the request body
-    var requestData = {
-        'selectedNumber': selectedNumber,
-        'hours': hours,
-        'minutes': minutes,
-        'selectedDays': selectedDays,
-        'timestamp': Date.now()
-    };
+    if (isNaN(selectedNumber) || isNaN(hours) || isNaN(minutes)) {
+        console.error("Datos inválidos de registro");
+        return;
+    }
 
-    // Serialize the data object to JSON
-    var requestDataJSON = JSON.stringify(requestData);
+    const days = [];
+    if ($("#day_mon").prop("checked")) days.push("L");
+    if ($("#day_tue").prop("checked")) days.push("M");
+    if ($("#day_wed").prop("checked")) days.push("X");
+    if ($("#day_thu").prop("checked")) days.push("J");
+    if ($("#day_fri").prop("checked")) days.push("V");
+    if ($("#day_sat").prop("checked")) days.push("S");
+    if ($("#day_sun").prop("checked")) days.push("D");
 
-	$.ajax({
-		url: '/regchange.json',
-		dataType: 'json',
-		method: 'POST',
-		cache: false,
-		data: requestDataJSON, // Send the JSON data in the request body
-		contentType: 'application/json', // Set the content type to JSON
-		success: function(response) {
-		  // Handle the success response from the server
-		  console.log(response);
-		},
-		error: function(xhr, status, error) {
-		  // Handle errors
-		  console.error(xhr.responseText);
-		}
-	  });
+    const payload = JSON.stringify({
+        register: selectedNumber,
+        hour:     hours,
+        minute:   minutes,
+        days:     days
+    });
 
-    // Print the resulting JSON to the console (for testing)
-    //console.log(requestDataJSON);
+    $.ajax({
+        url: "/api/register",
+        dataType: "text",      // tu C responde "OK"
+        method: "POST",
+        cache: false,
+        data: payload,
+        contentType: "application/json",
+        success: function(resp) {
+            console.log("Registro guardado:", resp);
+        },
+        error: function(xhr, status, error) {
+            console.error("Error guardando registro:", xhr.responseText);
+        }
+    });
 }
+
+
+// function send_register()
+// {
+//     // Assuming you have selectedNumber, hours, minutes variables populated from your form
+//     selectedNumber = $("#selectNumber").val();
+//     hours = $("#hours").val();
+//     minutes = $("#minutes").val();
+    
+//     // Create an array for selected days
+//     var selectedDays = [];
+//     if ($("#day_mon").prop("checked")) selectedDays.push("1");
+// 	else selectedDays.push("0");
+//     if ($("#day_tue").prop("checked")) selectedDays.push("1");
+// 	else selectedDays.push("0");
+//     if ($("#day_wed").prop("checked")) selectedDays.push("1");
+// 	else selectedDays.push("0");
+//     if ($("#day_thu").prop("checked")) selectedDays.push("1");
+// 	else selectedDays.push("0");
+//     if ($("#day_fri").prop("checked")) selectedDays.push("1");
+// 	else selectedDays.push("0");
+//     if ($("#day_sat").prop("checked")) selectedDays.push("1");
+// 	else selectedDays.push("0");
+//     if ($("#day_sun").prop("checked")) selectedDays.push("1");
+// 	else selectedDays.push("0");
+
+//     // Create an object to hold the data to be sent in the request body
+//     var requestData = {
+//         'selectedNumber': selectedNumber,
+//         'hours': hours,
+//         'minutes': minutes,
+//         'selectedDays': selectedDays,
+//         'timestamp': Date.now()
+//     };
+
+//     // Serialize the data object to JSON
+//     var requestDataJSON = JSON.stringify(requestData);
+
+// 	$.ajax({
+// 		url: '/regchange.json',
+// 		dataType: 'json',
+// 		method: 'POST',
+// 		cache: false,
+// 		data: requestDataJSON, // Send the JSON data in the request body
+// 		contentType: 'application/json', // Set the content type to JSON
+// 		success: function(response) {
+// 		  // Handle the success response from the server
+// 		  console.log(response);
+// 		},
+// 		error: function(xhr, status, error) {
+// 		  // Handle errors
+// 		  console.error(xhr.responseText);
+// 		}
+// 	  });
+
+//     // Print the resulting JSON to the console (for testing)
+//     //console.log(requestDataJSON);
+// }
 
 /**
  * toogle led function.
